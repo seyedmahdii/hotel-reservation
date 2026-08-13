@@ -1,0 +1,69 @@
+# Binaries and compiled output
+/bin/
+/dist/
+/build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Dependency management
+/vendor/
+
+# Go workspace and build cache
+/go.sum
+/go.work
+/go.work.sum
+
+# Test coverage and profiling
+*.cov
+*.cover
+*.profile
+*.prop
+*.html
+coverage.txt
+coverage.out
+*.log
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.idea_modules/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# Temporary files and cache
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+
+# Debugging and profiling
+*.pprof
+*.cpu
+*.mem
+*.block
+*.trace
+
+# Coverage files from tools like goconvey, gotestsum
+*.coverage
