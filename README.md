@@ -13,7 +13,7 @@ https://www.mongodb.com/docs/drivers/go/current/get-started
 Installing mongodb client
 
 ```
-go get go.mongodb.org/mongo-driver/mongo
+go get go.mongodb.org/mongo-driver/v2/mongo
 ```
 
 ### gofiber
@@ -35,5 +35,5 @@ go get github.com/gofiber/fiber/v2
 ### Installing mongodb as a Docker container
 
 ```
-docker run --name mongodb -d mongo:latest -p 27017:27017
+docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
