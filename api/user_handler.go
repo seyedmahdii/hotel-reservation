@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/seyedmahdii/hotel-reservation/db"
-	"github.com/seyedmahdii/hotel-reservation/types"
 )
 
 type UserHandler struct {
@@ -31,10 +30,10 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	user := types.User{
-		FirstName: "Mahdi",
-		LastName:  "Jalali",
+	users, err := h.userStore.GetUsers(c.Context())
+	if err != nil {
+		return err
 	}
 
-	return c.JSON(user)
+	return c.JSON(users)
 }
