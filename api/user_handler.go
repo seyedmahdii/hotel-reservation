@@ -1,9 +1,12 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/seyedmahdii/hotel-reservation/db"
 	"github.com/seyedmahdii/hotel-reservation/types"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type UserHandler struct {
@@ -20,6 +23,9 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 	user, err := h.userStore.GetUserById(c.Context(), id)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return c.JSON(map[string]string{"error": "not found"})
+		}
 		return err
 	}
 	return c.JSON(user)
