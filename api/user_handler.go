@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/seyedmahdii/hotel-reservation/db"
 	"github.com/seyedmahdii/hotel-reservation/types"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -69,4 +70,27 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(map[string]string{"deleted": id})
+}
+
+func (h *UserHandler) HandleUpdateUser(c *fiber.Ctx) error {
+	var (
+		// values bson.M
+		params types.UpdateUserParams
+		userId = c.Params("id")
+	)
+	oid, err := bson.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": oid}
+	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
+		return err
+	}
+
+	return c.JSON(map[string]string{"updated": userId})
 }
