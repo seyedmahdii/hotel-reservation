@@ -30,12 +30,17 @@ func main() {
 
 	// handlers initialization
 	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
+	hotelStore := db.NewMongoHotelStore(client)
+	roomStore := db.NewMongoRoomStore(client, hotelStore)
+	hotelHandler := api.NewHotelHandler(hotelStore, roomStore)
 
-	appv1.Get("/user", userHandler.HandleGetUsers)
-	appv1.Get("/user/:id", userHandler.HandleGetUser)
-	appv1.Post("/user", userHandler.HandlePostUser)
-	appv1.Delete("/user/:id", userHandler.HandleDeleteUser)
-	appv1.Put("/user/:id", userHandler.HandleUpdateUser)
+	appv1.Get("/users", userHandler.HandleGetUsers)
+	appv1.Get("/users/:id", userHandler.HandleGetUser)
+	appv1.Post("/users", userHandler.HandlePostUser)
+	appv1.Delete("/users/:id", userHandler.HandleDeleteUser)
+	appv1.Put("/users/:id", userHandler.HandleUpdateUser)
+
+	appv1.Get("/hotels", hotelHandler.HandleGetHotels)
 
 	app.Listen(*listenAddr)
 }
