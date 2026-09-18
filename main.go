@@ -49,6 +49,7 @@ func main() {
 	appv1.Put("/users/:id", userHandler.HandleUpdateUser)
 
 	appv1.Get("/hotels", hotelHandler.HandleGetHotels)
+	appv1.Get("/hotels/:id", hotelHandler.HandleGetHotel)
 	appv1.Get("/hotels/:id/rooms", hotelHandler.HandleGetHotelRooms)
 
 	app.Listen(*listenAddr)

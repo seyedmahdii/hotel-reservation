@@ -12,6 +12,7 @@ const hotelsColl = "hotels"
 
 type HotelStore interface {
 	GetHotels(context.Context, bson.M) ([]*types.Hotel, error)
+	GetHotel(context.Context, string) (*types.Hotel, error)
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
 	UpdateHotel(context.Context, bson.M, bson.M) (*types.Hotel, error)
 }
@@ -40,6 +41,20 @@ func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M) ([]*type
 	}
 
 	return hotels, nil
+}
+
+func (s *MongoHotelStore) GetHotel(ctx context.Context, hotelId string) (*types.Hotel, error) {
+	oid, err := bson.ObjectIDFromHex(hotelId)
+	if err != nil {
+		return nil, err
+	}
+
+	var hotel types.Hotel
+	if err := s.coll.FindOne(ctx, bson.M{"_id": oid}).Decode(&hotel); err != nil {
+		return nil, err
+	}
+
+	return &hotel, nil
 }
 
 func (s *MongoHotelStore) UpdateHotel(ctx context.Context, filter bson.M, update bson.M) (*types.Hotel, error) {
