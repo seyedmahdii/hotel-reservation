@@ -28,11 +28,19 @@ func main() {
 	app := fiber.New(config)
 	appv1 := app.Group("/api/v1")
 
-	// handlers initialization
-	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
-	hotelStore := db.NewMongoHotelStore(client)
-	roomStore := db.NewMongoRoomStore(client, hotelStore)
-	hotelHandler := api.NewHotelHandler(hotelStore, roomStore)
+	var (
+		hotelStore = db.NewMongoHotelStore(client)
+		roomStore  = db.NewMongoRoomStore(client, hotelStore)
+		userStore  = db.NewMongoUserStore(client)
+		store      = &db.Store{
+			UserStore:  userStore,
+			HotelStore: hotelStore,
+			RoomStore:  roomStore,
+		}
+
+		userHandler  = api.NewUserHandler(userStore)
+		hotelHandler = api.NewHotelHandler(store)
+	)
 
 	appv1.Get("/users", userHandler.HandleGetUsers)
 	appv1.Get("/users/:id", userHandler.HandleGetUser)
