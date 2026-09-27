@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/seyedmahdii/hotel-reservation/api"
+	"github.com/seyedmahdii/hotel-reservation/api/middleware"
 	"github.com/seyedmahdii/hotel-reservation/db"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -26,7 +27,7 @@ func main() {
 
 	listenAddr := flag.String("listenAddr", ":5000", "The listen address of the API server")
 	app := fiber.New(config)
-	appv1 := app.Group("/api/v1")
+	appv1 := app.Group("/api/v1", middleware.JWTAuthentication)
 
 	var (
 		hotelStore = db.NewMongoHotelStore(client)
