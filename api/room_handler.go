@@ -25,9 +25,30 @@ type BookRoomParams struct {
 	NumPeople int       `json:"numPeople"`
 }
 
+func (p BookRoomParams) validate() error {
+	now := time.Now()
+
+	if now.After(p.FromDate) || now.After(p.TillDate) {
+		return fiber.NewError(fiber.StatusBadRequest, "dates must be in the future")
+	}
+
+	if p.TillDate.Before(p.FromDate) || p.TillDate.Equal(p.FromDate) {
+		return fiber.NewError(fiber.StatusBadRequest, "tillDate must be after fromDate")
+	}
+
+	if p.NumPeople <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "numPeople must be greater than 0")
+	}
+
+	return nil
+}
+
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	var params BookRoomParams
 	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+	if err := params.validate(); err != nil {
 		return err
 	}
 
