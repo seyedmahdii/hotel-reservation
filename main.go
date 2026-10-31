@@ -62,6 +62,7 @@ func main() {
 	appv1.Get("/hotels/:id/rooms", hotelHandler.HandleGetHotelRooms)
 
 	appv1.Post("/rooms/:id/book", roomHandler.HandleBookRoom)
+	appv1.Get("/rooms", roomHandler.HandleGetRooms)
 
 	app.Listen(*listenAddr)
 }
