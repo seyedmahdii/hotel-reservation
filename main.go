@@ -26,9 +26,6 @@ func main() {
 	}
 
 	listenAddr := flag.String("listenAddr", ":5000", "The listen address of the API server")
-	app := fiber.New(config)
-	auth := app.Group("/api")
-	appv1 := app.Group("/api/v1", middleware.JWTAuthentication)
 
 	var (
 		hotelStore = db.NewMongoHotelStore(client)
@@ -44,6 +41,10 @@ func main() {
 		hotelHandler = api.NewHotelHandler(store)
 		authHandler  = api.NewAuthHandler(userStore)
 	)
+
+	app := fiber.New(config)
+	auth := app.Group("/api")
+	appv1 := app.Group("/api/v1", middleware.JWTAuthentication(userStore))
 
 	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
