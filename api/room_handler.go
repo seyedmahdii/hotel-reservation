@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,15 +30,24 @@ func (p BookRoomParams) validate() error {
 	now := time.Now()
 
 	if now.After(p.FromDate) || now.After(p.TillDate) {
-		return fiber.NewError(fiber.StatusBadRequest, "dates must be in the future")
+		return fiber.NewError(
+			fiber.StatusBadRequest,
+			"dates must be in the future",
+		)
 	}
 
 	if p.TillDate.Before(p.FromDate) || p.TillDate.Equal(p.FromDate) {
-		return fiber.NewError(fiber.StatusBadRequest, "tillDate must be after fromDate")
+		return fiber.NewError(
+			fiber.StatusBadRequest,
+			"tillDate must be after fromDate",
+		)
 	}
 
 	if p.NumPeople <= 0 {
-		return fiber.NewError(fiber.StatusBadRequest, "numPeople must be greater than 0")
+		return fiber.NewError(
+			fiber.StatusBadRequest,
+			"numPeople must be greater than 0",
+		)
 	}
 
 	return nil
@@ -45,16 +55,27 @@ func (p BookRoomParams) validate() error {
 
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	var params BookRoomParams
+
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(genericResp{
+			Type: "error",
+			Msg:  err.Error(),
+		})
 	}
+
 	if err := params.validate(); err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(genericResp{
+			Type: "error",
+			Msg:  err.Error(),
+		})
 	}
 
 	roomID, err := bson.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusBadRequest).JSON(genericResp{
+			Type: "error",
+			Msg:  "invalid room ID",
+		})
 	}
 
 	user, ok := c.Context().Value("user").(*types.User)
@@ -62,6 +83,18 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(genericResp{
 			Type: "error",
 			Msg:  "internal server error",
+		})
+	}
+
+	available, err := h.isRoomAvailableForBooking(c.Context(), roomID, params)
+	if err != nil {
+		return err
+	}
+
+	if !available {
+		return c.Status(fiber.StatusConflict).JSON(genericResp{
+			Type: "error",
+			Msg:  "room is not available for the selected dates",
 		})
 	}
 
@@ -79,4 +112,28 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(insertedBooking)
+}
+
+func (h *RoomHandler) isRoomAvailableForBooking(
+	ctx context.Context,
+	roomID bson.ObjectID,
+	params BookRoomParams,
+) (bool, error) {
+	// Find existing bookings whose date ranges overlap.
+	where := bson.M{
+		"roomID": roomID,
+		"fromDate": bson.M{
+			"$lt": params.TillDate,
+		},
+		"tillDate": bson.M{
+			"$gt": params.FromDate,
+		},
+	}
+
+	bookings, err := h.store.BookingStore.GetBookings(ctx, where)
+	if err != nil {
+		return false, err
+	}
+
+	return len(bookings) == 0, nil
 }
