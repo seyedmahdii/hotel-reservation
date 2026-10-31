@@ -28,25 +28,27 @@ func main() {
 	listenAddr := flag.String("listenAddr", ":5000", "The listen address of the API server")
 
 	var (
-		hotelStore = db.NewMongoHotelStore(client)
-		roomStore  = db.NewMongoRoomStore(client, hotelStore)
-		userStore  = db.NewMongoUserStore(client)
-		store      = &db.Store{
-			UserStore:  userStore,
-			HotelStore: hotelStore,
-			RoomStore:  roomStore,
+		hotelStore   = db.NewMongoHotelStore(client)
+		roomStore    = db.NewMongoRoomStore(client, hotelStore)
+		userStore    = db.NewMongoUserStore(client)
+		bookingStore = db.NewMongoBookingStore(client)
+		store        = &db.Store{
+			UserStore:    userStore,
+			HotelStore:   hotelStore,
+			RoomStore:    roomStore,
+			BookingStore: bookingStore,
 		}
 
 		userHandler  = api.NewUserHandler(userStore)
 		hotelHandler = api.NewHotelHandler(store)
 		authHandler  = api.NewAuthHandler(userStore)
+		roomHandler  = api.NewRoomHandler(store)
 	)
 
 	app := fiber.New(config)
 	auth := app.Group("/api")
 	appv1 := app.Group("/api/v1", middleware.JWTAuthentication(userStore))
 
-	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
 
 	appv1.Get("/users", userHandler.HandleGetUsers)
@@ -58,6 +60,8 @@ func main() {
 	appv1.Get("/hotels", hotelHandler.HandleGetHotels)
 	appv1.Get("/hotels/:id", hotelHandler.HandleGetHotel)
 	appv1.Get("/hotels/:id/rooms", hotelHandler.HandleGetHotelRooms)
+
+	appv1.Post("/rooms/:id/book", roomHandler.HandleBookRoom)
 
 	app.Listen(*listenAddr)
 }
